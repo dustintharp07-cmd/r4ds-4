@@ -1,0 +1,67 @@
+---
+title: "Analyzing NBA Recruits"
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(readxl)
+```
+
+```{r}
+recruits <- read_excel("data/nba_recruits.xlsx")
+
+tibble(
+  column = names(recruits),
+  type = map_chr(recruits, \(x) paste(class(x), collapse = ", ")),
+  examples = map_chr(recruits, \(x) paste(head(as.character(x), 3), collapse = ", "))
+)
+```
+
+```{r}
+summary(recruits |> select(rank, nba_mean_ws48, top_mean_wa, total_seasons, drafted))
+```
+
+```{r}
+#| cache: true
+basketball_tibble <- recruits |>
+  mutate(
+    tier = factor(
+      tier,
+      levels = c("Never played", "Brief career", "Solid career", "All-Star level", "Superstar"),
+      ordered = TRUE
+    ),
+    recruit_group = factor(
+      recruit_group,
+      levels = c("#1–10", "#11–25", "#26–50", "#51–100", "Outside top 100"),
+      ordered = TRUE
+    )
+  )
+```
+
+```{r}
+plot_data <- basketball_tibble |>
+  filter(!is.na(rank), !is.na(top_mean_wa))
+
+ggplot(plot_data, aes(x = rank, y = top_mean_wa, color = tier)) +
+  geom_point() +
+  geom_smooth(aes(group = 1), method = "lm", se = FALSE, color = "black") +
+  geom_text(
+    data = filter(
+      plot_data,
+      name %in% c("LeBron James", "Draymond Green", "James Harden", "Kawhi Leonard")
+    ),
+    aes(label = name),
+    color = "black",
+    nudge_y = 0.8,
+    show.legend = FALSE
+  ) +
+  labs(
+    x = "Recruit rank",
+    y = "Peak Wins Added",
+    color = "Career tier"
+  )
+```
