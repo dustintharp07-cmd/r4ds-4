@@ -6,12 +6,14 @@ execute:
 ---
 
 ```{r}
+#| echo: false
 #| message: false
 library(tidyverse)
 library(readxl)
 ```
 
 ```{r}
+#| echo: false
 recruits <- read_excel("data/nba_recruits.xlsx")
 
 tibble(
@@ -22,10 +24,12 @@ tibble(
 ```
 
 ```{r}
+#| echo: false
 summary(recruits |> select(rank, nba_mean_ws48, top_mean_wa, total_seasons, drafted))
 ```
 
 ```{r}
+#| echo: false
 #| cache: true
 basketball_tibble <- recruits |>
   mutate(
@@ -43,12 +47,20 @@ basketball_tibble <- recruits |>
 ```
 
 ```{r}
+#| echo: false
+#| message: false
 plot_data <- basketball_tibble |>
   filter(!is.na(rank), !is.na(top_mean_wa))
 
 ggplot(plot_data, aes(x = rank, y = top_mean_wa, color = tier)) +
-  geom_point() +
-  geom_smooth(aes(group = 1), method = "lm", se = FALSE, color = "black") +
+  geom_point(alpha = 0.7, size = 2) +
+  geom_smooth(
+    aes(group = 1),
+    method = "lm",
+    se = FALSE,
+    color = "gray35",
+    linewidth = 0.8
+  ) +
   geom_text(
     data = filter(
       plot_data,
@@ -59,9 +71,12 @@ ggplot(plot_data, aes(x = rank, y = top_mean_wa, color = tier)) +
     nudge_y = 0.8,
     show.legend = FALSE
   ) +
+  scale_color_brewer(palette = "Dark2") +
   labs(
     x = "Recruit rank",
     y = "Peak Wins Added",
     color = "Career tier"
-  )
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
 ```
